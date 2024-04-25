@@ -1,0 +1,20 @@
+{
+  "name": "qr-code-reader",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "node ./build.js && vite build",
+    "pack": "cd dist && zip -r qr-code-reader.zip manifest.json background.js icons"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/chrome": "0.0.134",
+    "@types/node": "^20.5.9",
+    "nodemon": "^3.0.1",
+    "vite": "^2.1.5",
+    "vite-plugin-chrome-extension": "^0.0.7"
+  }
+}

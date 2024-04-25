@@ -1,0 +1,11 @@
+# Common
+node_modules
+.DS_Store
+.idea
+
+# Certificate
+keys
+*.crx
+
+# Build folder
+dist
