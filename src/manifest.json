@@ -2,7 +2,7 @@
   "name": "QR Code Scanner",
   "action": {},
   "manifest_version": 3,
-  "version": "0.1",
+  "version": "0.2",
   "description": "Makes QR Codes accessible for navigation.",
   "permissions": [
     "activeTab",

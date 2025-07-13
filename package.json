@@ -4,6 +4,7 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "dev": "nodemon .",
     "build": "node ./build.js && vite build",
     "pack": "cd dist && zip -r qr-code-reader.zip manifest.json background.js icons"
   },
