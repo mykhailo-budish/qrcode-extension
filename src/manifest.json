@@ -1,15 +1,12 @@
 {
   "name": "QR Code Scanner",
-  "action": {},
+  "action": {
+    "default_title": "Click to select QR code"
+  },
   "manifest_version": 3,
-  "version": "0.2",
+  "version": "0.3",
   "description": "Makes QR Codes accessible for navigation.",
-  "permissions": [
-    "activeTab",
-    "clipboardWrite",
-    "contextMenus",
-    "scripting"
-  ],
+  "permissions": ["activeTab", "clipboardWrite", "contextMenus", "scripting"],
   "background": {
     "service_worker": "background.js"
   },

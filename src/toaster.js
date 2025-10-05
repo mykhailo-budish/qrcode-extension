@@ -40,14 +40,13 @@ function Toaster() {
   this.toastContainer = null;
 
   Toaster.initiateAnimation = function() {
-
     setTimeout(() => {
       this.toastContainer.remove();
       this.toastContainer = null;
     }, animationDuration);
 
     document.body.appendChild(this.toastContainer);
-  }
+  };
 
   Toaster.success = function(message) {
     this.toastContainer = createToastContainer();
@@ -56,7 +55,16 @@ function Toaster() {
     this.toastContainer.innerText = message;
 
     this.initiateAnimation();
-  }
+  };
+
+  Toaster.error = function(message) {
+    this.toastContainer = createToastContainer();
+
+    this.toastContainer.style.backgroundColor = "#FF2C2C";
+    this.toastContainer.innerText = message;
+
+    this.initiateAnimation();
+  };
 
   return Toaster;
 }

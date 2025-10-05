@@ -1,52 +1,31 @@
 const OPEN_LINK_FROM_QR_MENU_ID = "open-link-from-qr";
 const COPY_CONTENT_FROM_QR_MENU_ID = "copy-content-from-qr";
 
+async function decodeFromImageByCoordinatesAndCopy(tabImageUrl, coordinates) {
+  require("./decode-helpers.js");
+  require("./image-scrapper.js");
+
+  const localImageUrl = await scrapImage({ tabImageUrl, coordinates });
+
+  decodeImageAndCopy(localImageUrl);
+}
+
 async function decodeFromImageAndOpen(tabImageUrl, imageUrl) {
   require("./image-scrapper.js");
-  require("./qcode-decoder.js");
-  const decoder = new QCodeDecoder();
+  require("./decode-helpers.js");
 
   const localImageUrl = await scrapImage({ tabImageUrl, imageUrl });
 
-  decoder.decodeFromImage(localImageUrl, function(result) {
-    if (!result) {
-      return console.log("Unable to decode image");
-    }
-    const url = result.startsWith("http")
-      ? result
-      : `https://google.com/search?q=${result}`;
-    window.open(url, "_blank");
-  });
+  decodeImageAndOpen(localImageUrl);
 }
 
 async function decodeFromImageAndCopy(tabImageUrl, imageUrl) {
   require("./image-scrapper.js");
-  require("./qcode-decoder.js");
-  require("./toaster.js");
-  const decoder = new QCodeDecoder();
-  const toaster = new Toaster();
+  require("./decode-helpers.js");
 
   const localImageUrl = await scrapImage({ tabImageUrl, imageUrl });
 
-  decoder.decodeFromImage(localImageUrl, function(result) {
-    if (!result) {
-      return console.log("Unable to decode image");
-    }
-    async function copyToTheClipboard(textToCopy) {
-      const el = document.createElement("textarea");
-      el.value = textToCopy;
-      el.setAttribute("readonly", "");
-      el.style.position = "absolute";
-      el.style.left = "-9999px";
-      document.body.appendChild(el);
-      el.select();
-      document.execCommand("copy");
-      document.body.removeChild(el);
-    }
-    copyToTheClipboard(result).then(function() {
-      toaster.success("Copied to clipboard");
-    });
-  });
+  decodeImageAndCopy(localImageUrl);
 }
 
 chrome.contextMenus.onClicked.addListener((info, tab) => {
@@ -58,11 +37,11 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
     chrome.tabs.captureVisibleTab(
       tab.windowId,
       { format: "png" },
-      (tabImageUrl) => {
+      tabImageUrl => {
         chrome.scripting.executeScript({
           target: { tabId: tab.id },
           func: decodeFromImageAndOpen,
-          args: [tabImageUrl, info.srcUrl],
+          args: [tabImageUrl, info.srcUrl]
         });
       }
     );
@@ -72,27 +51,50 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
     chrome.tabs.captureVisibleTab(
       tab.windowId,
       { format: "png" },
-      (tabImageUrl) => {
+      tabImageUrl => {
         chrome.scripting.executeScript({
           target: { tabId: tab.id },
           func: decodeFromImageAndCopy,
-          args: [tabImageUrl, info.srcUrl],
+          args: [tabImageUrl, info.srcUrl]
         });
       }
     );
   }
 });
 
-chrome.runtime.onInstalled.addListener(function() {
+chrome.action.onClicked.addListener(tab => {
+  chrome.scripting.executeScript({
+    target: { tabId: tab.id },
+    files: ["./select-image.js"]
+  });
+});
+chrome.runtime.onMessage.addListener((e, sender) => {
+  const senderTab = sender.tab;
+  if (e.type === "qr-code-image-selected" && senderTab) {
+    chrome.tabs.captureVisibleTab(
+      senderTab.windowId,
+      { format: "png" },
+      tabImageUrl => {
+        chrome.scripting.executeScript({
+          target: { tabId: senderTab.id },
+          func: decodeFromImageByCoordinatesAndCopy,
+          args: [tabImageUrl, e.payload]
+        });
+      }
+    );
+  }
+});
+
+chrome.runtime.onInstalled.addListener(() => {
   chrome.contextMenus.create({
     id: OPEN_LINK_FROM_QR_MENU_ID,
     title: "Open link from QR code",
-    contexts: ["image"],
+    contexts: ["image"]
   });
 
   chrome.contextMenus.create({
     id: COPY_CONTENT_FROM_QR_MENU_ID,
     title: "Copy content from QR code",
-    contexts: ["image"],
+    contexts: ["image"]
   });
 });

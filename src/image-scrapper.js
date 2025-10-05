@@ -1,37 +1,70 @@
-function scrapImage({ tabImageUrl, imageUrl }) {
+const getImageInfoFromImageUrl = imageUrl => {
+  const imgElement = document.querySelector(`img[src="${imageUrl}"]`);
+  if (!imgElement) {
+    return [null, "Unable to find image element"];
+  }
+  const imgBoundingRect = imgElement.getBoundingClientRect();
+  const scale = window.devicePixelRatio;
+  return [
+    {
+      x: imgBoundingRect.x * scale,
+      y: imgBoundingRect.y * scale,
+      width: imgBoundingRect.width * scale,
+      height: imgBoundingRect.height * scale
+    },
+    null
+  ];
+};
+
+const getImageInfoFromCoordinates = coordinates => {
+  const scale = window.devicePixelRatio;
+
+  return {
+    x: coordinates.x * scale,
+    y: coordinates.y * scale,
+    width: coordinates.width * scale,
+    height: coordinates.height * scale
+  };
+};
+
+function scrapImage({ tabImageUrl, imageUrl, coordinates }) {
   return new Promise((res, rej) => {
-    const imgElement = document.querySelector(`img[src="${imageUrl}"]`);
-    if (!imgElement) {
-      return rej("Unable to find image element");
+    let imageInfo;
+    if (imageUrl) {
+      const [imageInfoFromImageUrl, error] = getImageInfoFromImageUrl(imageUrl);
+      if (error) {
+        return rej(error);
+      }
+      imageInfo = imageInfoFromImageUrl;
+    } else if (coordinates) {
+      imageInfo = getImageInfoFromCoordinates(coordinates);
+    } else {
+      return rej(
+        "Invalid arguments, expected either `imageUrl` from image element on page or `coordinates` of rectangle from page viewport"
+      );
     }
-    const imgBoundingRect = imgElement.getBoundingClientRect();
+
     const image = new Image();
     image.src = tabImageUrl;
     image.onload = () => {
-      const scale = window.devicePixelRatio;
       const canvas = document.createElement("canvas");
       const context = canvas.getContext("2d");
 
-      const subImageX = imgBoundingRect.x * scale;
-      const subImageY = imgBoundingRect.y * scale;
-      const subImageWidth = imgBoundingRect.width * scale;
-      const subImageHeight = imgBoundingRect.height * scale;
-
-      canvas.width = subImageWidth;
-      canvas.height = subImageHeight;
+      canvas.width = imageInfo.width;
+      canvas.height = imageInfo.height;
 
       context.drawImage(
         image,
-        subImageX,
-        subImageY,
-        subImageWidth,
-        subImageHeight,
+        imageInfo.x,
+        imageInfo.y,
+        imageInfo.width,
+        imageInfo.height,
         0,
         0,
-        subImageWidth,
-        subImageHeight
+        imageInfo.width,
+        imageInfo.height
       );
-      const clippedImageUrl = canvas.toDataURL('image/png');
+      const clippedImageUrl = canvas.toDataURL("image/png");
       res(clippedImageUrl);
     };
   });
